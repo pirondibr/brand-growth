@@ -1,0 +1,140 @@
+{
+  "name": "DataForSEO Test - Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dataforseo-keyword",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "29a77b6d-16d3-4cbe-ad7f-993bca0f265b",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [656, 176],
+      "webhookId": "dataforseo-keyword"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "brand",
+              "stringValue": "={{ $json.body.brand || 'semrush' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "704f07bb-66ef-4f10-bb0f-84e316586f00",
+      "name": "Set Keyword",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [880, 176]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/live",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic cmFmYWVscGlyb21kaUBnbWFpbC5jb206NmYwYzkxNjcyNjI3N2YwMg=="
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[{\"keywords\": [\"{{ $json.brand }}\"],\"location_code\": 2826,\"language_code\": \"en\",\"date_from\": \"2023-01-01\",\"date_to\": \"2025-12-01\"}]",
+        "options": {}
+      },
+      "id": "a3dd464c-82ed-4758-b91b-faddb31f8943",
+      "name": "DataForSEO API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1104, 176]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.item.json;\nconst keywordData = response?.tasks?.[0]?.result?.[0];\n\nif (!keywordData) {\n  return { json: { success: false, error: 'No data returned', raw: response }};\n}\n\nreturn {\n  json: {\n    keyword: keywordData.keyword,\n    monthlyData: (keywordData.monthly_searches || []).map(item => ({\n      period: `${String(item.month).padStart(2, '0')}-${item.year}`,\n      searches: item.search_volume\n    }))\n  }\n};"
+      },
+      "id": "b69c8160-a4ca-43bb-9ba4-94bfc82192bc",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1328, 176]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "c5e2f3a1-8b7d-4c9e-a1b2-3d4e5f6a7b8c",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1552, 176]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Keyword",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Keyword": {
+      "main": [
+        [
+          {
+            "node": "DataForSEO API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DataForSEO API": {
+      "main": [
+        [
+          {
+            "node": "Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ecfac8c0-632f-4518-83de-067eb25f677b",
+  "meta": {
+    "instanceId": "6de1b9b663091b0082b1b41d225c2e8e9509c2550cb3f56d3b74f27de2a40f1a"
+  },
+  "id": "p6FWAudSvPBbWX94",
+  "tags": []
+}

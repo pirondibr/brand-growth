@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Growth Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">Brand Growth Analyzer</h1>
+            <p class="subtitle">Track and visualize your website's brand growth metrics</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="input-container">
+                    <label for="websiteInput" class="input-label">Enter Website Name</label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="websiteInput" 
+                            class="website-input" 
+                            placeholder="e.g., example.com"
+                            autocomplete="off"
+                        >
+                        <button id="analyzeBtn" class="analyze-btn">
+                            <span class="btn-text">Analyze Growth</span>
+                            <span class="btn-loader" style="display: none;">
+                                <svg class="spinner" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    <p class="input-hint">Enter the domain name (e.g., example.com) to analyze brand growth</p>
+                </div>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h2>Brand Growth Analysis</h2>
+                    <span id="websiteName" class="website-name"></span>
+                </div>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
+                <div id="metricsContainer" class="metrics-container">
+                    <!-- Metrics will be dynamically inserted here -->
+                </div>
+
+                <div id="chartContainer" class="chart-container">
+                    <!-- Chart will be rendered here -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by DataForSEO API & n8n</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
