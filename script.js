@@ -66,6 +66,11 @@ async function handleAnalyze() {
 
         const data = await response.json();
         
+        // Log the response for debugging
+        console.log('n8n Response:', data);
+        console.log('Response type:', Array.isArray(data) ? 'Array' : typeof data);
+        console.log('Response keys:', typeof data === 'object' && data !== null ? Object.keys(data) : 'N/A');
+        
         // Display results
         displayResults(website, data);
         
@@ -111,27 +116,153 @@ function displayResults(website, data) {
     // Handle the n8n response format: array of objects with period and searches
     let searchData = [];
     
+    // Log the data structure for debugging
+    console.log('Parsing data:', data);
+    
     // Check if data is an array (direct response)
     if (Array.isArray(data)) {
-        searchData = data;
+        // Check if it's the n8n format: [{keyword: "...", monthlyData: [...]}]
+        if (data.length > 0 && data[0].monthlyData && Array.isArray(data[0].monthlyData)) {
+            // Use the first keyword's monthlyData (or combine all if multiple keywords)
+            searchData = data[0].monthlyData;
+            console.log('Found monthlyData in array:', searchData.length, 'items');
+        }
+        // Check if first item contains the actual data array
+        else if (data.length === 1 && Array.isArray(data[0])) {
+            searchData = data[0];
+            console.log('Found array in first element:', searchData.length, 'items');
+        } else if (data.length === 1 && data[0].json && Array.isArray(data[0].json)) {
+            searchData = data[0].json;
+            console.log('Found data[0].json array:', searchData.length, 'items');
+        } else if (data.length === 1 && data[0].body && Array.isArray(data[0].body)) {
+            searchData = data[0].body;
+            console.log('Found data[0].body array:', searchData.length, 'items');
+        } else {
+            // Check if array items have period/searches directly
+            if (data.length > 0 && data[0].period !== undefined && data[0].searches !== undefined) {
+                searchData = data;
+                console.log('Found array directly with period/searches:', searchData.length, 'items');
+            }
+        }
+    }
+    // Check if data has monthlyData property (n8n format)
+    else if (data && data.monthlyData && Array.isArray(data.monthlyData)) {
+        searchData = data.monthlyData;
+        console.log('Found data.monthlyData array:', searchData.length, 'items');
     }
     // Check if data has a data property with array
-    else if (Array.isArray(data.data)) {
+    else if (data && Array.isArray(data.data)) {
         searchData = data.data;
+        console.log('Found data.data array:', searchData.length, 'items');
     }
     // Check if data has a searches property with array
-    else if (Array.isArray(data.searches)) {
+    else if (data && Array.isArray(data.searches)) {
         searchData = data.searches;
+        console.log('Found data.searches array:', searchData.length, 'items');
     }
     // Check if data has a results property with array
-    else if (Array.isArray(data.results)) {
+    else if (data && Array.isArray(data.results)) {
         searchData = data.results;
+        console.log('Found data.results array:', searchData.length, 'items');
+    }
+    // Check if data has a body property (common in webhook responses)
+    else if (data && data.body) {
+        if (Array.isArray(data.body)) {
+            searchData = data.body;
+            console.log('Found data.body array:', searchData.length, 'items');
+        } else if (data.body && Array.isArray(data.body.data)) {
+            searchData = data.body.data;
+            console.log('Found data.body.data array:', searchData.length, 'items');
+        }
+    }
+    // Check if data has a json property
+    else if (data && data.json) {
+        if (Array.isArray(data.json)) {
+            searchData = data.json;
+            console.log('Found data.json array:', searchData.length, 'items');
+        } else if (data.json && Array.isArray(data.json.data)) {
+            searchData = data.json.data;
+            console.log('Found data.json.data array:', searchData.length, 'items');
+        } else if (data.json.json && Array.isArray(data.json.json)) {
+            searchData = data.json.json;
+            console.log('Found data.json.json array:', searchData.length, 'items');
+        }
+    }
+    // Check if data has a response property (common in n8n Respond to Webhook)
+    else if (data && data.response) {
+        if (Array.isArray(data.response)) {
+            searchData = data.response;
+            console.log('Found data.response array:', searchData.length, 'items');
+        } else if (data.response && Array.isArray(data.response.data)) {
+            searchData = data.response.data;
+            console.log('Found data.response.data array:', searchData.length, 'items');
+        }
+    }
+    // Check if data is an object with numeric keys (n8n sometimes returns objects with indices)
+    else if (data && typeof data === 'object' && !Array.isArray(data)) {
+        // Check if object has numeric string keys (like {"0": {...}, "1": {...}})
+        const keys = Object.keys(data);
+        const numericKeys = keys.filter(k => /^\d+$/.test(k));
+        if (numericKeys.length > 0 && numericKeys.length === keys.length) {
+            // Convert to array
+            const potentialArray = numericKeys.map(k => data[k]);
+            if (potentialArray.length > 0) {
+                const firstItem = potentialArray[0];
+                // Check if it's an array of search data
+                if (Array.isArray(firstItem) && firstItem.length > 0 && firstItem[0].period !== undefined) {
+                    searchData = firstItem;
+                    console.log('Found array in numeric-keyed object:', searchData.length, 'items');
+                } else if (firstItem && (firstItem.period !== undefined || firstItem.searches !== undefined)) {
+                    searchData = potentialArray;
+                    console.log('Converted numeric-keyed object to array:', searchData.length, 'items');
+                }
+            }
+        }
+        
+        // Try to find any array property
+        if (searchData.length === 0) {
+            for (const key in data) {
+                if (Array.isArray(data[key]) && data[key].length > 0) {
+                    // Check if it looks like search data (has period and searches properties)
+                    const firstItem = data[key][0];
+                    if (firstItem && (firstItem.period !== undefined || firstItem.searches !== undefined)) {
+                        searchData = data[key];
+                        console.log(`Found array in data.${key}:`, searchData.length, 'items');
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If still not found, check if the object itself has period/searches (single item)
+        if (searchData.length === 0 && data.period !== undefined && data.searches !== undefined) {
+            searchData = [data];
+            console.log('Found single item with period/searches');
+        }
+    }
+
+    // Validate that we have the right structure
+    if (searchData.length > 0) {
+        const firstItem = searchData[0];
+        if (!firstItem.period && !firstItem.searches) {
+            console.warn('Data found but missing period/searches properties:', firstItem);
+            // Try to find period/searches in nested structure
+            searchData = searchData.map(item => {
+                // Handle nested structures
+                if (item.data) return item.data;
+                if (item.json) return item.json;
+                return item;
+            }).filter(item => item && (item.period !== undefined || item.searches !== undefined));
+        }
     }
 
     if (searchData.length === 0) {
-        showError('No search data found in the response. Please check your n8n workflow configuration.');
+        console.error('No search data found. Full response:', JSON.stringify(data, null, 2));
+        showError('No search data found in the response. Please check your n8n workflow configuration. Check browser console for details.');
         return;
     }
+    
+    console.log('Final searchData:', searchData);
 
     // Extract and display metrics from search data
     const metrics = extractMetricsFromSearchData(searchData);
