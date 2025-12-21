@@ -64,12 +64,34 @@ async function handleAnalyze() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        let data = await response.json();
         
-        // Log the response for debugging
-        console.log('n8n Response:', data);
+        // Log the raw response for debugging
+        console.log('=== RAW n8n Response ===');
+        console.log('Response:', data);
         console.log('Response type:', Array.isArray(data) ? 'Array' : typeof data);
         console.log('Response keys:', typeof data === 'object' && data !== null ? Object.keys(data) : 'N/A');
+        
+        // Sometimes n8n wraps the response - check for common wrapper properties
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+            // Check if data is wrapped in a response/body/json property
+            if (data.body && Array.isArray(data.body)) {
+                console.log('Found data wrapped in body property');
+                data = data.body;
+            } else if (data.json && Array.isArray(data.json)) {
+                console.log('Found data wrapped in json property');
+                data = data.json;
+            } else if (data.response && Array.isArray(data.response)) {
+                console.log('Found data wrapped in response property');
+                data = data.response;
+            } else if (data.data && Array.isArray(data.data)) {
+                console.log('Found data wrapped in data property');
+                data = data.data;
+            }
+        }
+        
+        console.log('=== Processed data ===');
+        console.log('Data:', data);
         
         // Display results
         displayResults(website, data);
@@ -118,30 +140,53 @@ function displayResults(website, data) {
     
     // Log the data structure for debugging
     console.log('Parsing data:', data);
+    console.log('Data type:', typeof data);
+    console.log('Is array:', Array.isArray(data));
+    if (data && typeof data === 'object') {
+        console.log('Data keys:', Object.keys(data));
+        if (Array.isArray(data) && data.length > 0) {
+            console.log('First item keys:', Object.keys(data[0]));
+            console.log('First item:', data[0]);
+        }
+    }
     
     // Check if data is an array (direct response)
     if (Array.isArray(data)) {
-        // Check if it's the n8n format: [{keyword: "...", monthlyData: [...]}]
-        if (data.length > 0 && data[0].monthlyData && Array.isArray(data[0].monthlyData)) {
-            // Use the first keyword's monthlyData (or combine all if multiple keywords)
-            searchData = data[0].monthlyData;
-            console.log('Found monthlyData in array:', searchData.length, 'items');
+        // PRIORITY 1: Check if it's the n8n format: [{keyword: "...", monthlyData: [...]}]
+        if (data.length > 0 && data[0] && typeof data[0] === 'object') {
+            if (data[0].monthlyData && Array.isArray(data[0].monthlyData)) {
+                // Use the first keyword's monthlyData (or combine all if multiple keywords)
+                searchData = data[0].monthlyData;
+                console.log('✓ Found monthlyData in array[0]:', searchData.length, 'items');
+            }
+            // Also check nested structures in first item
+            else if (data[0].json && data[0].json.monthlyData && Array.isArray(data[0].json.monthlyData)) {
+                searchData = data[0].json.monthlyData;
+                console.log('✓ Found monthlyData in array[0].json:', searchData.length, 'items');
+            }
+            else if (data[0].body && data[0].body.monthlyData && Array.isArray(data[0].body.monthlyData)) {
+                searchData = data[0].body.monthlyData;
+                console.log('✓ Found monthlyData in array[0].body:', searchData.length, 'items');
+            }
         }
-        // Check if first item contains the actual data array
-        else if (data.length === 1 && Array.isArray(data[0])) {
-            searchData = data[0];
-            console.log('Found array in first element:', searchData.length, 'items');
-        } else if (data.length === 1 && data[0].json && Array.isArray(data[0].json)) {
-            searchData = data[0].json;
-            console.log('Found data[0].json array:', searchData.length, 'items');
-        } else if (data.length === 1 && data[0].body && Array.isArray(data[0].body)) {
-            searchData = data[0].body;
-            console.log('Found data[0].body array:', searchData.length, 'items');
-        } else {
-            // Check if array items have period/searches directly
-            if (data.length > 0 && data[0].period !== undefined && data[0].searches !== undefined) {
-                searchData = data;
-                console.log('Found array directly with period/searches:', searchData.length, 'items');
+        
+        // PRIORITY 2: Check if first item contains the actual data array
+        if (searchData.length === 0) {
+            if (data.length === 1 && Array.isArray(data[0])) {
+                searchData = data[0];
+                console.log('Found array in first element:', searchData.length, 'items');
+            } else if (data.length === 1 && data[0].json && Array.isArray(data[0].json)) {
+                searchData = data[0].json;
+                console.log('Found data[0].json array:', searchData.length, 'items');
+            } else if (data.length === 1 && data[0].body && Array.isArray(data[0].body)) {
+                searchData = data[0].body;
+                console.log('Found data[0].body array:', searchData.length, 'items');
+            } else {
+                // Check if array items have period/searches directly
+                if (data.length > 0 && data[0] && data[0].period !== undefined && data[0].searches !== undefined) {
+                    searchData = data;
+                    console.log('Found array directly with period/searches:', searchData.length, 'items');
+                }
             }
         }
     }
@@ -244,25 +289,42 @@ function displayResults(website, data) {
     // Validate that we have the right structure
     if (searchData.length > 0) {
         const firstItem = searchData[0];
-        if (!firstItem.period && !firstItem.searches) {
+        console.log('First searchData item:', firstItem);
+        if (!firstItem || (!firstItem.period && !firstItem.searches)) {
             console.warn('Data found but missing period/searches properties:', firstItem);
             // Try to find period/searches in nested structure
-            searchData = searchData.map(item => {
+            const cleanedData = searchData.map(item => {
                 // Handle nested structures
-                if (item.data) return item.data;
-                if (item.json) return item.json;
+                if (item && item.data) return item.data;
+                if (item && item.json) return item.json;
                 return item;
             }).filter(item => item && (item.period !== undefined || item.searches !== undefined));
+            
+            if (cleanedData.length > 0) {
+                searchData = cleanedData;
+                console.log('Cleaned searchData:', searchData.length, 'items');
+            } else {
+                console.error('Cleaned data is empty. Original first item:', firstItem);
+            }
+        } else {
+            console.log('✓ Valid searchData structure confirmed');
         }
     }
 
     if (searchData.length === 0) {
-        console.error('No search data found. Full response:', JSON.stringify(data, null, 2));
-        showError('No search data found in the response. Please check your n8n workflow configuration. Check browser console for details.');
+        console.error('No search data found.');
+        console.error('Full response:', JSON.stringify(data, null, 2));
+        console.error('Response type:', typeof data);
+        console.error('Is array:', Array.isArray(data));
+        if (data && typeof data === 'object') {
+            console.error('Response keys:', Object.keys(data));
+        }
+        showError('No search data found in the response. Please check your n8n workflow configuration. Check browser console (F12) for details.');
         return;
     }
     
-    console.log('Final searchData:', searchData);
+    console.log('✓ Final searchData:', searchData.length, 'items');
+    console.log('Sample item:', searchData[0]);
 
     // Extract and display metrics from search data
     const metrics = extractMetricsFromSearchData(searchData);
