@@ -3,69 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Growth Analyzer</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Brand Growth - Keyword Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-header {
+            margin-bottom: 20px;
+        }
+
+        .result-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .keyword-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .webhook-url {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            word-break: break-all;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1 class="title">Brand Growth Analyzer</h1>
-            <p class="subtitle">Track and visualize your website's brand growth metrics</p>
-        </header>
-
-        <main>
-            <div class="input-section">
-                <div class="input-container">
-                    <label for="websiteInput" class="input-label">Enter Website Name</label>
-                    <div class="input-wrapper">
-                        <input 
-                            type="text" 
-                            id="websiteInput" 
-                            class="website-input" 
-                            placeholder="e.g., example.com"
-                            autocomplete="off"
-                        >
-                        <button id="analyzeBtn" class="analyze-btn">
-                            <span class="btn-text">Analyze Growth</span>
-                            <span class="btn-loader" style="display: none;">
-                                <svg class="spinner" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
-                                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                </svg>
-                            </span>
-                        </button>
-                    </div>
-                    <p class="input-hint">Enter the domain name (e.g., example.com) to analyze brand growth</p>
-                </div>
+        <h1>Brand Growth</h1>
+        <p class="subtitle">Enter a keyword to analyze search volume data</p>
+        
+        <form id="keywordForm">
+            <div class="form-group">
+                <label for="webhookUrl">n8n Webhook URL</label>
+                <input 
+                    type="text" 
+                    id="webhookUrl" 
+                    name="webhookUrl" 
+                    placeholder="https://your-n8n-instance.com/webhook/dataforseo-keyword"
+                    required
+                >
+                <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">
+                    Enter your n8n webhook URL (path: /webhook/dataforseo-keyword)
+                </small>
             </div>
-
-            <div id="resultsSection" class="results-section" style="display: none;">
-                <div class="results-header">
-                    <h2>Brand Growth Analysis</h2>
-                    <span id="websiteName" class="website-name"></span>
-                </div>
-                
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
-                
-                <div id="metricsContainer" class="metrics-container">
-                    <!-- Metrics will be dynamically inserted here -->
-                </div>
-
-                <div id="chartContainer" class="chart-container">
-                    <!-- Chart will be rendered here -->
-                </div>
+            
+            <div class="form-group">
+                <label for="keyword">Keyword</label>
+                <input 
+                    type="text" 
+                    id="keyword" 
+                    name="keyword" 
+                    placeholder="e.g., semrush, seo tools, digital marketing"
+                    required
+                >
             </div>
-        </main>
+            
+            <button type="submit" id="submitBtn">Analyze Keyword</button>
+        </form>
 
-        <footer>
-            <p>Powered by DataForSEO API & n8n</p>
-        </footer>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing keyword data...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="results" id="results">
+            <div class="result-header">
+                <h2>Search Volume Data</h2>
+                <span class="keyword-badge" id="keywordBadge"></span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Search Volume</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const form = document.getElementById('keywordForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const results = document.getElementById('results');
+        const keywordBadge = document.getElementById('keywordBadge');
+        const dataTableBody = document.getElementById('dataTableBody');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const webhookUrl = document.getElementById('webhookUrl').value.trim();
+            const keyword = document.getElementById('keyword').value.trim();
+            
+            if (!webhookUrl) {
+                showError('Please enter your n8n webhook URL');
+                return;
+            }
+            
+            if (!keyword) {
+                showError('Please enter a keyword');
+                return;
+            }
+
+            // Reset UI
+            hideError();
+            hideResults();
+            showLoading();
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keyword: keyword
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.keyword && data.monthlyData) {
+                    displayResults(data);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (err) {
+                showError(err.message || 'Failed to fetch keyword data. Please check your webhook URL and ensure the n8n workflow is active.');
+            } finally {
+                hideLoading();
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showLoading() {
+            loading.classList.add('active');
+        }
+
+        function hideLoading() {
+            loading.classList.remove('active');
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function hideError() {
+            error.classList.remove('active');
+        }
+
+        function showResults() {
+            results.classList.add('active');
+        }
+
+        function hideResults() {
+            results.classList.remove('active');
+        }
+
+        function displayResults(data) {
+            keywordBadge.textContent = data.keyword;
+            
+            // Clear previous data
+            dataTableBody.innerHTML = '';
+            
+            // Add monthly data to table
+            if (data.monthlyData && data.monthlyData.length > 0) {
+                data.monthlyData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.period}</td>
+                        <td>${item.searches.toLocaleString()}</td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="2" style="text-align: center; color: #999;">No data available</td>
+                `;
+                dataTableBody.appendChild(row);
+            }
+            
+            showResults();
+        }
+    </script>
 </body>
 </html>
-
