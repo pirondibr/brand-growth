@@ -245,11 +245,12 @@
 
     <script>
         // ============================================
-        // CONFIGURATION: Update this with your n8n webhook URL
+        // n8n Webhook URL - automatically configured
         // ============================================
-        const WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/dataforseo-keyword';
-        // Replace 'your-n8n-instance.com' with your actual n8n instance URL
-        // Example: 'https://n8n.app.n8n.cloud/webhook/dataforseo-keyword'
+        // Get the webhook URL from the current origin or use n8n cloud default
+        // For n8n cloud: https://[instance].app.n8n.cloud/webhook/dataforseo-keyword
+        // For self-hosted: https://[your-domain]/webhook/dataforseo-keyword
+        const WEBHOOK_URL = 'https://n8n.app.n8n.cloud/webhook/dataforseo-keyword';
         // ============================================
 
         const form = document.getElementById('companyForm');
