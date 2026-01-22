@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Brand Growth - Keyword Analysis</title>
+    <title>Brand Growth - Company Analysis</title>
     <style>
         * {
             margin: 0;
@@ -195,54 +195,31 @@
             background: #f9f9f9;
         }
 
-        .webhook-url {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            word-break: break-all;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Brand Growth</h1>
-        <p class="subtitle">Enter a keyword to analyze search volume data</p>
+        <p class="subtitle">Enter a company name to analyze search volume data</p>
         
-        <form id="keywordForm">
+        <form id="companyForm">
             <div class="form-group">
-                <label for="webhookUrl">n8n Webhook URL</label>
+                <label for="companyName">Company Name</label>
                 <input 
                     type="text" 
-                    id="webhookUrl" 
-                    name="webhookUrl" 
-                    placeholder="https://your-n8n-instance.com/webhook/dataforseo-keyword"
-                    required
-                >
-                <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 5px;">
-                    Enter your n8n webhook URL (path: /webhook/dataforseo-keyword)
-                </small>
-            </div>
-            
-            <div class="form-group">
-                <label for="keyword">Keyword</label>
-                <input 
-                    type="text" 
-                    id="keyword" 
-                    name="keyword" 
-                    placeholder="e.g., semrush, seo tools, digital marketing"
+                    id="companyName" 
+                    name="companyName" 
+                    placeholder="e.g., semrush, chatguru, digital marketing"
                     required
                 >
             </div>
             
-            <button type="submit" id="submitBtn">Analyze Keyword</button>
+            <button type="submit" id="submitBtn">Analyze Company</button>
         </form>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Analyzing keyword data...</p>
+            <p>Analyzing company data...</p>
         </div>
 
         <div class="error" id="error"></div>
@@ -267,7 +244,15 @@
     </div>
 
     <script>
-        const form = document.getElementById('keywordForm');
+        // ============================================
+        // CONFIGURATION: Update this with your n8n webhook URL
+        // ============================================
+        const WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/dataforseo-keyword';
+        // Replace 'your-n8n-instance.com' with your actual n8n instance URL
+        // Example: 'https://n8n.app.n8n.cloud/webhook/dataforseo-keyword'
+        // ============================================
+
+        const form = document.getElementById('companyForm');
         const submitBtn = document.getElementById('submitBtn');
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
@@ -278,16 +263,10 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const webhookUrl = document.getElementById('webhookUrl').value.trim();
-            const keyword = document.getElementById('keyword').value.trim();
+            const companyName = document.getElementById('companyName').value.trim();
             
-            if (!webhookUrl) {
-                showError('Please enter your n8n webhook URL');
-                return;
-            }
-            
-            if (!keyword) {
-                showError('Please enter a keyword');
+            if (!companyName) {
+                showError('Please enter a company name');
                 return;
             }
 
@@ -298,13 +277,13 @@
             submitBtn.disabled = true;
 
             try {
-                const response = await fetch(webhookUrl, {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        keyword: keyword
+                        keyword: companyName
                     })
                 });
 
@@ -324,7 +303,7 @@
                     throw new Error('Invalid response format');
                 }
             } catch (err) {
-                showError(err.message || 'Failed to fetch keyword data. Please check your webhook URL and ensure the n8n workflow is active.');
+                showError(err.message || 'Failed to fetch company data. Please check your webhook configuration and ensure the n8n workflow is active.');
             } finally {
                 hideLoading();
                 submitBtn.disabled = false;
