@@ -7,7 +7,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Brand Growth - Company Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -15,79 +18,87 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 40px 20px;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            padding: 48px;
+            max-width: 900px;
             width: 100%;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2rem;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
         .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.95rem;
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 1rem;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
         label {
             display: block;
-            color: #333;
+            color: #1a1a2e;
             font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
             font-size: 1rem;
+            font-family: inherit;
             transition: all 0.3s ease;
+            background: #fafafa;
         }
 
         input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #6366f1;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
         button {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
         }
 
         button:active {
@@ -103,8 +114,8 @@
         .loading {
             display: none;
             text-align: center;
-            margin-top: 20px;
-            color: #667eea;
+            margin-top: 32px;
+            color: #6366f1;
         }
 
         .loading.active {
@@ -112,13 +123,13 @@
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #6366f1;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -128,12 +139,13 @@
 
         .error {
             display: none;
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #c33;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 24px;
+            border-left: 4px solid #dc2626;
+            font-weight: 500;
         }
 
         .error.active {
@@ -142,9 +154,9 @@
 
         .results {
             display: none;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e5e7eb;
         }
 
         .results.active {
@@ -152,54 +164,183 @@
         }
 
         .result-header {
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .result-header h2 {
-            color: #333;
+            color: #1a1a2e;
             font-size: 1.5rem;
-            margin-bottom: 5px;
+            font-weight: 700;
         }
 
         .keyword-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
         }
 
+        .trend-up {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .trend-down {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .trend-neutral {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .table-header h3 {
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
 
         .data-table th {
-            background: #f5f5f5;
-            padding: 12px;
+            background: #f8fafc;
+            padding: 14px 16px;
             text-align: left;
             font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #e0e0e0;
+            color: #475569;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
         }
 
         .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
         }
 
         .data-table tr:hover {
-            background: #f9f9f9;
+            background: #f8fafc;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .volume-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .volume-bar-track {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .volume-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .volume-value {
+            min-width: 80px;
+            text-align: right;
+            font-weight: 600;
+            color: #1a1a2e;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Brand Growth</h1>
-        <p class="subtitle">Enter a company name to analyze search volume data</p>
+        <h1>📈 Brand Growth</h1>
+        <p class="subtitle">Analyze search volume trends for any company or keyword</p>
         
         <form id="companyForm">
             <div class="form-group">
@@ -218,28 +359,59 @@
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Analyzing company data...</p>
+            <p>Analyzing search volume data...</p>
         </div>
 
         <div class="error" id="error"></div>
 
         <div class="results" id="results">
             <div class="result-header">
-                <h2>Search Volume Data</h2>
-                <span class="keyword-badge" id="keywordBadge"></span>
+                <h2>Search Volume Analysis</h2>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="keyword-badge" id="keywordBadge"></span>
+                    <span class="trend-indicator" id="trendIndicator"></span>
+                </div>
             </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Period</th>
-                        <th>Search Volume</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody">
-                </tbody>
-            </table>
-        </div>
 
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="avgVolume">-</div>
+                    <div class="stat-label">Avg. Monthly</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="maxVolume">-</div>
+                    <div class="stat-label">Peak Volume</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="minVolume">-</div>
+                    <div class="stat-label">Lowest Volume</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="growthRate">-</div>
+                    <div class="stat-label">Growth Rate</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="volumeChart"></canvas>
+            </div>
+
+            <div class="table-header">
+                <h3>Monthly Breakdown</h3>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Search Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -253,6 +425,8 @@
         const results = document.getElementById('results');
         const keywordBadge = document.getElementById('keywordBadge');
         const dataTableBody = document.getElementById('dataTableBody');
+
+        let volumeChart = null;
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -329,19 +503,84 @@
             results.classList.remove('active');
         }
 
-        function displayResults(data) {
-            keywordBadge.textContent = data.keyword;
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
+
+        function calculateStats(monthlyData) {
+            const volumes = monthlyData.map(d => d.searches);
+            const avg = Math.round(volumes.reduce((a, b) => a + b, 0) / volumes.length);
+            const max = Math.max(...volumes);
+            const min = Math.min(...volumes);
             
-            // Clear previous data
+            // Calculate growth rate (last 6 months vs previous 6 months)
+            const recentMonths = volumes.slice(0, 6);
+            const previousMonths = volumes.slice(6, 12);
+            
+            const recentAvg = recentMonths.reduce((a, b) => a + b, 0) / recentMonths.length;
+            const previousAvg = previousMonths.reduce((a, b) => a + b, 0) / previousMonths.length;
+            
+            const growthRate = previousAvg > 0 ? ((recentAvg - previousAvg) / previousAvg * 100) : 0;
+
+            return { avg, max, min, growthRate };
+        }
+
+        function displayResults(data) {
+            keywordBadge.textContent = '🔍 ' + data.keyword;
+            
+            // Reverse data for chronological order (oldest first)
+            const chronologicalData = [...data.monthlyData].reverse();
+            
+            // Calculate stats
+            const stats = calculateStats(data.monthlyData);
+            
+            document.getElementById('avgVolume').textContent = formatNumber(stats.avg);
+            document.getElementById('maxVolume').textContent = formatNumber(stats.max);
+            document.getElementById('minVolume').textContent = formatNumber(stats.min);
+            document.getElementById('growthRate').textContent = (stats.growthRate >= 0 ? '+' : '') + stats.growthRate.toFixed(1) + '%';
+            
+            // Set trend indicator
+            const trendIndicator = document.getElementById('trendIndicator');
+            if (stats.growthRate > 5) {
+                trendIndicator.className = 'trend-indicator trend-up';
+                trendIndicator.innerHTML = '↑ Trending Up';
+            } else if (stats.growthRate < -5) {
+                trendIndicator.className = 'trend-indicator trend-down';
+                trendIndicator.innerHTML = '↓ Trending Down';
+            } else {
+                trendIndicator.className = 'trend-indicator trend-neutral';
+                trendIndicator.innerHTML = '→ Stable';
+            }
+            
+            // Create chart
+            createChart(chronologicalData);
+            
+            // Clear previous table data
             dataTableBody.innerHTML = '';
             
-            // Add monthly data to table
+            // Find max volume for bar scaling
+            const maxVolume = stats.max;
+            
+            // Add monthly data to table (most recent first)
             if (data.monthlyData && data.monthlyData.length > 0) {
                 data.monthlyData.forEach(item => {
                     const row = document.createElement('tr');
+                    const percentage = maxVolume > 0 ? (item.searches / maxVolume * 100) : 0;
                     row.innerHTML = `
                         <td>${item.period}</td>
-                        <td>${item.searches.toLocaleString()}</td>
+                        <td>
+                            <div class="volume-bar">
+                                <div class="volume-bar-track">
+                                    <div class="volume-bar-fill" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="volume-value">${item.searches.toLocaleString()}</span>
+                            </div>
+                        </td>
                     `;
                     dataTableBody.appendChild(row);
                 });
@@ -354,6 +593,114 @@
             }
             
             showResults();
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (volumeChart) {
+                volumeChart.destroy();
+            }
+            
+            const labels = data.map(d => d.period);
+            const values = data.map(d => d.searches);
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 350);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+            
+            volumeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Search Volume',
+                        data: values,
+                        borderColor: '#6366f1',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#6366f1',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 26, 46, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            padding: 14,
+                            cornerRadius: 10,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    return 'Search Volume: ' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 45,
+                                minRotation: 45,
+                                maxTicksLimit: 12
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
